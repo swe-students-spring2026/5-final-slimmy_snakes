@@ -1,66 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>StudyCast Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyCast — Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
+<div class="container">
 
-    <h1>StudyCast Dashboard</h1>
-    {% if session.user_name %}
-        <p>Welcome, {{ session.user_name }}!</p>
-        <p><a href="/logout">Log Out</a></p>
-    {% endif %}
-    <h2>Edit StudyCast</h2>
+    <div class="page-header">
+        <h1>StudyCast</h1>
+        {% if session.user_name %}
+            <span class="user-info">{{ session.user_name }} &nbsp;·&nbsp; <a href="/logout">Log out</a></span>
+        {% endif %}
+    </div>
 
-    <ul>
-        <li><a href="/todos">Edit To Do List</a></li>
-        <li><a href="#">Edit Calendar </a></li>
-    </ul>
-        <div class="card">
-        <h2>Today To Do</h2>
+    <div class="nav">
+        <a href="/dashboard" class="active">Dashboard</a>
+        <a href="/todos">To-Do</a>
+    </div>
+
+    <!-- Today's Tasks -->
+    <div class="card">
+        <h2>Today's Tasks</h2>
 
         {% if today_todos %}
             <ul>
                 {% for todo in today_todos %}
-                    <li>
-                        
-                        {% if todo.completed %}
-                            <s>{{ todo.task }}</s>
-                        {% else %}
-                            {{ todo.task }}
-                        {% endif %}
+                    <li class="exam-item">
+                        <div class="exam-info">
+                            {% if todo.completed %}
+                                <span class="status-done">{{ todo.task }}</span>
+                            {% else %}
+                                {{ todo.task }}
+                            {% endif %}
+                        </div>
                     </li>
                 {% endfor %}
             </ul>
+            <p style="margin-top:12px;margin-bottom:0;">
+                <a href="/todos" style="font-size:0.82rem;">Manage tasks →</a>
+            </p>
         {% else %}
-            <p>No tasks for today.</p>
+            <p class="empty">Nothing due today. <a href="/todos">Add a task →</a></p>
         {% endif %}
-
-
     </div>
 
+    <!-- Long Term Tasks -->
     <div class="card">
-        <h2>Long Term To Do</h2>
+        <h2>Long Term</h2>
 
         {% if long_term_todos %}
             <ul>
                 {% for todo in long_term_todos %}
-                    <li>
-                        
-                        {% if todo.completed %}
-                            <s>{{ todo.task }}</s>
-                        {% else %}
-                            {{ todo.task }}
-                        {% endif %}
+                    <li class="exam-item">
+                        <div class="exam-info">
+                            {% if todo.completed %}
+                                <span class="status-done">{{ todo.task }}</span>
+                            {% else %}
+                                {{ todo.task }}
+                            {% endif %}
+                        </div>
                     </li>
                 {% endfor %}
             </ul>
         {% else %}
-            <p>No long-term tasks.</p>
+            <p class="empty">No long-term tasks.</p>
         {% endif %}
     </div>
 
+</div>
 </body>
 </html>
