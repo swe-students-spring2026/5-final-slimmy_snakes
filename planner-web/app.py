@@ -101,6 +101,36 @@ def start_study_session():
     return redirect("/study-sessions")
 
 
+@app.route("/study-sessions/start-json", methods=["POST"])
+@login_required
+def start_study_session_json():
+    try:
+        return jsonify(call_study_session_service(
+            "/sessions",
+            method="POST",
+            payload={"user": session.get("user_name", "anonymous")},
+        ))
+    except (OSError, URLError, TimeoutError):
+        return jsonify({"error": "Could not start session."}), 503
+
+
+@app.route("/study-sessions/end-json", methods=["POST"])
+@login_required
+def end_study_session_json():
+    payload = request.get_json(silent=True) or {}
+    session_id = payload.get("session_id")
+    if not session_id:
+        return jsonify({"error": "Missing session id."}), 400
+    try:
+        return jsonify(call_study_session_service(
+            f"/sessions/{session_id}/end",
+            method="POST",
+            payload={"distraction_count": int(payload.get("distraction_count", 0))},
+        ))
+    except (OSError, URLError, TimeoutError):
+        return jsonify({"error": "Could not end session."}), 503
+
+
 @app.route("/study-sessions/detect", methods=["POST"])
 @login_required
 def detect_study_distraction():

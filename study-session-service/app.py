@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
+from bson.objectid import ObjectId
 from pymongo import MongoClient
 
 from detector import classify_distraction, score_distraction
@@ -36,6 +37,20 @@ def create_session():
     }
     result = db.study_sessions.insert_one(session)
     return jsonify({"session_id": str(result.inserted_id)}), 201
+
+
+@app.post("/sessions/<session_id>/end")
+def end_session(session_id):
+    payload = request.get_json(silent=True) or {}
+    distraction_count = int(payload.get("distraction_count", 0))
+    db.study_sessions.update_one(
+        {"_id": ObjectId(session_id)},
+        {"$set": {
+            "ended_at": datetime.now(timezone.utc),
+            "distraction_count": distraction_count,
+        }},
+    )
+    return jsonify({"distraction_count": distraction_count, "status": "ended"})
 
 
 @app.post("/detect")

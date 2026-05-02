@@ -46,6 +46,8 @@ textarea { resize: vertical; min-height: 64px; }
 .focus-grid video { width: 100%; aspect-ratio: 16 / 9; background: #000; border: 1px solid #000; }
 .focus-panel { border: 1px solid #000; padding: 12px; background: #f8f8f8; }
 .focus-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.duration-row { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
+.compact-input { width: 92px; }
 
 /* Buttons & links */
 button, .btn { background: #000; color: #fff; border: none; padding: 8px 18px; font-size: 0.84rem; font-weight: 700; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
