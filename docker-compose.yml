@@ -1,0 +1,33 @@
+services:
+  mongodb:
+    build: ./mongodb
+    image: cheology/studycast-mongodb:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  planner-web:
+    build: ./planner-web
+    image: cheology/studycast-planner-web:latest
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/
+      MONGO_DB: studycast
+    ports:
+      - "5001:5001"
+    depends_on:
+      - mongodb
+
+  study-session-service:
+    build: ./study-session-service
+    image: cheology/studycast-study-session-service:latest
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/
+      MONGO_DB: studycast
+    ports:
+      - "5002:5002"
+    depends_on:
+      - mongodb
+
+volumes:
+  mongo-data:
