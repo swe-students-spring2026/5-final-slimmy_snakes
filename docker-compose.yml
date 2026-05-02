@@ -1,7 +1,7 @@
 services:
   mongodb:
     build: ./mongodb
-    image: ${DOCKERHUB_USERNAME:-local}/studycast-mongodb:latest
+    image: cheology/studycast-mongodb:latest
     ports:
       - "27017:27017"
     volumes:
@@ -9,7 +9,7 @@ services:
 
   planner-web:
     build: ./planner-web
-    image: ${DOCKERHUB_USERNAME:-local}/studycast-planner-web:latest
+    image: cheology/studycast-planner-web:latest
     environment:
       MONGO_URI: mongodb://mongodb:27017/
       MONGO_DB: studycast
@@ -20,7 +20,7 @@ services:
 
   study-session-service:
     build: ./study-session-service
-    image: ${DOCKERHUB_USERNAME:-local}/studycast-study-session-service:latest
+    image: cheology/studycast-study-session-service:latest
     environment:
       MONGO_URI: mongodb://mongodb:27017/
       MONGO_DB: studycast
