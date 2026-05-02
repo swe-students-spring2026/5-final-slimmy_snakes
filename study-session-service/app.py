@@ -20,10 +20,16 @@ def health():
     return jsonify({"status": "ok", "service": "study-session-service"})
 
 
+@app.get("/")
+def index():
+    return health()
+
+
 @app.post("/sessions")
 def create_session():
+    payload = request.get_json(silent=True) or {}
     session = {
-        "user": request.json.get("user", "anonymous"),
+        "user": payload.get("user", "anonymous"),
         "started_at": datetime.now(timezone.utc),
         "ended_at": None,
         "events": [],

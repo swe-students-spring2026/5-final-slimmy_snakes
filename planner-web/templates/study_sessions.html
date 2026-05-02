@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyCast - Study Sessions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+
+    <div class="page-header">
+        <h1>StudyCast</h1>
+        {% if session.user_name %}
+            <span class="user-info">{{ session.user_name }} &nbsp;·&nbsp; <a href="/logout">Log out</a></span>
+        {% endif %}
+    </div>
+
+    <div class="nav">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/exams">Exams</a>
+        <a href="/preparations">Preparations</a>
+        <a href="/calendar">Calendar</a>
+        <a href="/study-sessions" class="active">Study Sessions</a>
+        <a href="/todos">To-Do</a>
+    </div>
+
+    <div class="card">
+        <h2>Study Session</h2>
+        {% if service_error %}
+            <p class="form-error">{{ service_error }}</p>
+        {% else %}
+            <p class="empty">Service status: {{ service_status.status }}</p>
+        {% endif %}
+
+        <form action="/study-sessions/start" method="POST" class="form-group">
+            <div><button type="submit">Start Session</button></div>
+        </form>
+
+        {% if session_result %}
+            {% if session_result.error %}
+                <p class="form-error">{{ session_result.error }}</p>
+            {% else %}
+                <p class="service-result">Session started: {{ session_result.session_id }}</p>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>Focus Check</h2>
+        <form action="/study-sessions/detect" method="POST" class="form-group">
+            <div class="form-grid">
+                <div class="form-row">
+                    <label>Face Visible</label>
+                    <select name="face_present">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Looking Away</label>
+                    <select name="looking_away">
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <label>Phone Visible</label>
+                <select name="phone_visible">
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                </select>
+            </div>
+            <div><button type="submit">Run Focus Check</button></div>
+        </form>
+
+        {% if detection_result %}
+            {% if detection_result.error %}
+                <p class="form-error">{{ detection_result.error }}</p>
+            {% else %}
+                <p class="service-result">Status: {{ detection_result.status }} · Score: {{ detection_result.score }}</p>
+            {% endif %}
+        {% endif %}
+    </div>
+
+</div>
+</body>
+</html>

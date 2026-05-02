@@ -41,6 +41,7 @@ textarea { resize: vertical; min-height: 64px; }
 .prep-date-hint { margin: 6px 0 0; font-size: 0.78rem; color: #666; }
 .prep-date-highlight { color: #c61d1d; font-weight: 700; }
 .form-error { margin: 0 0 10px; color: #c61d1d; font-size: 0.84rem; font-weight: 700; }
+.service-result { margin: 10px 0 0; font-size: 0.84rem; font-weight: 700; }
 
 /* Buttons & links */
 button, .btn { background: #000; color: #fff; border: none; padding: 8px 18px; font-size: 0.84rem; font-weight: 700; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
