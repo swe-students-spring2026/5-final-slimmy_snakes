@@ -2,17 +2,10 @@ name: CI (planner web)
 
 on:
   push:
-    branches: [main, master]
-    paths:
-      - "planner-web/**"
-      - ".github/workflows/planner-web-ci.yml"
-      - "pyproject.toml"
+    branches: [main, master, testing]
   pull_request:
     branches: [main, master]
-    paths:
-      - "planner-web/**"
-      - ".github/workflows/planner-web-ci.yml"
-      - "pyproject.toml"
+  workflow_dispatch:
 
 jobs:
   test:

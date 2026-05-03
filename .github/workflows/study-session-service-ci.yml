@@ -2,17 +2,10 @@ name: CI (study session service)
 
 on:
   push:
-    branches: [main, master]
-    paths:
-      - "study-session-service/**"
-      - ".github/workflows/study-session-service-ci.yml"
-      - "pyproject.toml"
+    branches: [main, master, testing]
   pull_request:
     branches: [main, master]
-    paths:
-      - "study-session-service/**"
-      - ".github/workflows/study-session-service-ci.yml"
-      - "pyproject.toml"
+  workflow_dispatch:
 
 jobs:
   test:
