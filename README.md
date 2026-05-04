@@ -6,6 +6,8 @@
 
 StudyCast is a containerized academic planner with a Flask web app, a study-session focus service, and MongoDB storage. It helps students manage exams, preparation plans, calendar/weather context, and focus-session feedback. StudyCast calendar will: warn the student if he/she is planning to study outdoors on a rainy or snowy day(red warnings); remind the student if he has past preperation(red); exams are highlighted as blue in the calendar. StudyCast start session allows student to start a study-session and beep/screen turn red if it detects the student not focusing by turning away their head or looking at their phone.
 
+##Digital Ocean Link:
+```https://167.99.153.128.sslip.io/auth```
 ## Subsystems
 
 - `planner-web`: Flask web dashboard for authentication, tasks, exams, preparation planning, calendar/weather views, and study-session controls.
