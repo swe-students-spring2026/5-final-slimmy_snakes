@@ -190,36 +190,21 @@ def get_preparation_hours(difficulty):
     return PREPARATION_HOURS.get(difficulty, 0)
 
 
-def get_total_preparation_hours(preparation_date):
+def get_total_preparation_hours(preparation_date, user_email):
     total_hours = 0
-    preparations = db.preparations.find({"preparation_date": preparation_date}, {"difficulty": 1})
+    preparations = db.preparations.find(
+        {"preparation_date": preparation_date, "user_email": user_email},
+        {"difficulty": 1}
+    )
+    
     for preparation in preparations:
         total_hours += get_preparation_hours(preparation.get("difficulty"))
     return total_hours
 
-
-def render_preparations_page(error=None):
-    exams = list(db.exams.find().sort("exam_date", 1))
-    preparations = list(db.preparations.find().sort("preparation_date", 1))
-
-    exam_lookup = {}
-    for exam in exams:
-        exam["_id"] = str(exam["_id"])
-        exam_lookup[exam["_id"]] = exam
-
-    for preparation in preparations:
-        preparation["_id"] = str(preparation["_id"])
-        preparation["exam_id"] = str(preparation["exam_id"])
-        preparation["exam"] = exam_lookup.get(preparation["exam_id"])
-        preparation["completed"] = preparation.get("completed", False)
-
-    return render_template(
-        "preparations.html",
-        exams=exams,
-        preparations=preparations,
-        error=error
-    )
-
+@app.route("/preparations")
+@login_required
+def preparations_page():
+    return render_preparations_page()
 
 def assign_dashboard_colors(exams):
     color_map = {}
@@ -239,9 +224,10 @@ def home():
 @login_required
 def dashboard():
     today = date.today()
-    todos = list(db.todos.find())
-    exams = list(db.exams.find().sort("exam_date", 1))
-    preparations = list(db.preparations.find().sort("preparation_date", 1))
+    user_email = session.get("user_email")
+    todos = list(db.todos.find({"user_email": user_email}))
+    exams = list(db.exams.find({"user_email": user_email}).sort("exam_date", 1))
+    preparations = list(db.preparations.find({"user_email": user_email}).sort("preparation_date", 1))
 
     today_todos = []
     long_term_todos = []
@@ -298,7 +284,7 @@ def dashboard():
 @app.route("/todos")
 @login_required
 def todos_page():
-    todos = list(db.todos.find())
+    todos = list(db.todos.find({"user_email": session.get("user_email")}))
 
     today_todos = []
     long_term_todos = []
@@ -328,7 +314,8 @@ def add_todo():
         db.todos.insert_one({
             "task": task,
             "type": todo_type,
-            "completed": False
+            "completed": False,
+            "user_email": session.get("user_email")
         })
 
     return redirect("/todos")
@@ -338,7 +325,7 @@ def add_todo():
 @login_required
 def complete_todo(todo_id):
     db.todos.update_one(
-        {"_id": ObjectId(todo_id)},
+        {"_id": ObjectId(todo_id), "user_email": session.get("user_email")},
         {"$set": {"completed": True}}
     )
     return redirect("/todos")
@@ -347,14 +334,14 @@ def complete_todo(todo_id):
 @app.route("/delete-todo/<todo_id>", methods=["POST"])
 @login_required
 def delete_todo(todo_id):
-    db.todos.delete_one({"_id": ObjectId(todo_id)})
+    db.todos.delete_one({"_id": ObjectId(todo_id), "user_email": session.get("user_email")})
     return redirect("/todos")
 
 
 @app.route("/exams")
 @login_required
 def exams_page():
-    exams = list(db.exams.find())
+    exams = list(db.exams.find({"user_email": session.get("user_email")}))
 
     for exam in exams:
         exam["_id"] = str(exam["_id"])
@@ -362,10 +349,31 @@ def exams_page():
     return render_template("exams.html", exams=exams)
 
 
-@app.route("/preparations")
-@login_required
-def preparations_page():
-    return render_preparations_page()
+
+
+def render_preparations_page(error=None):
+    exams = list(db.exams.find({"user_email": session.get("user_email")}).sort("exam_date", 1))  
+    preparations = list(db.preparations.find({"user_email": session.get("user_email")}).sort("preparation_date", 1))  
+
+    exam_lookup = {}
+    for exam in exams:
+        exam["_id"] = str(exam["_id"])
+        exam_lookup[exam["_id"]] = exam
+
+    for preparation in preparations:
+        preparation["_id"] = str(preparation["_id"])
+        preparation["exam_id"] = str(preparation["exam_id"])
+        preparation["exam"] = exam_lookup.get(preparation["exam_id"])
+        preparation["completed"] = preparation.get("completed", False)
+
+    return render_template(
+        "preparations.html",
+        exams=exams,
+        preparations=preparations,
+        error=error
+    )
+
+  
 
 
 @app.route("/add-exam", methods=["POST"])
@@ -380,7 +388,8 @@ def add_exam():
             "subject": subject,
             "exam_date": exam_date,
             "exam_type": exam_type,
-            "status": "upcoming"
+            "status": "upcoming",
+            "user_email": session.get("user_email")
         })
 
     return redirect("/exams")
@@ -396,7 +405,7 @@ def add_preparation():
     notes = request.form.get("notes")
 
     if exam_id and preparation_date and difficulty and location:
-        current_hours = get_total_preparation_hours(preparation_date)
+        current_hours = get_total_preparation_hours(preparation_date, session.get("user_email"))
         added_hours = get_preparation_hours(difficulty)
 
         if current_hours + added_hours >= 24:
@@ -410,7 +419,8 @@ def add_preparation():
             "difficulty": difficulty,
             "location": location,
             "notes": notes,
-            "completed": False
+            "completed": False,
+            "user_email": session.get("user_email")
         })
 
     return redirect("/preparations")
@@ -419,7 +429,8 @@ def add_preparation():
 @app.route("/delete-preparation/<preparation_id>", methods=["POST"])
 @login_required
 def delete_preparation(preparation_id):
-    db.preparations.delete_one({"_id": ObjectId(preparation_id)})
+    
+    db.preparations.delete_one({"_id": ObjectId(preparation_id), "user_email": session.get("user_email")}) 
     redirect_to = request.form.get("redirect_to")
     if redirect_to:
         return redirect(redirect_to)
@@ -430,7 +441,7 @@ def delete_preparation(preparation_id):
 @login_required
 def complete_preparation(preparation_id):
     db.preparations.update_one(
-        {"_id": ObjectId(preparation_id)},
+        {"_id": ObjectId(preparation_id), "user_email": session.get("user_email")},
         {"$set": {"completed": True}}
     )
     redirect_to = request.form.get("redirect_to")
@@ -443,7 +454,7 @@ def complete_preparation(preparation_id):
 @login_required
 def complete_exam(exam_id):
     db.exams.update_one(
-        {"_id": ObjectId(exam_id)},
+        {"_id": ObjectId(exam_id), "user_email": session.get("user_email")},
         {"$set": {"status": "done"}}
     )
     redirect_to = request.form.get("redirect_to")
@@ -457,7 +468,7 @@ def complete_exam(exam_id):
 def edit_exam(exam_id):
     if request.method == "POST":
         db.exams.update_one(
-            {"_id": ObjectId(exam_id)},
+            {"_id": ObjectId(exam_id), "user_email": session.get("user_email")},
             {"$set": {
                 "subject": request.form.get("subject"),
                 "exam_date": request.form.get("exam_date"),
@@ -467,7 +478,7 @@ def edit_exam(exam_id):
         )
         return redirect("/exams")
 
-    exam = db.exams.find_one({"_id": ObjectId(exam_id)})
+    exam = db.exams.find_one({"_id": ObjectId(exam_id), "user_email": session.get("user_email")})
 
     if not exam:
         return redirect("/exams")
@@ -479,8 +490,8 @@ def edit_exam(exam_id):
 @app.route("/delete-exam/<exam_id>", methods=["POST"])
 @login_required
 def delete_exam(exam_id):
-    db.preparations.delete_many({"exam_id": ObjectId(exam_id)})
-    db.exams.delete_one({"_id": ObjectId(exam_id)})
+    db.preparations.delete_many({"exam_id": ObjectId(exam_id), "user_email": session.get("user_email")})  
+    db.exams.delete_one({"_id": ObjectId(exam_id), "user_email": session.get("user_email")})
     return redirect("/exams")
 
 
@@ -493,7 +504,7 @@ def auth():
         name = request.form.get("name")
         email = request.form.get("email")
         password = request.form.get("password")
-        action = request.form.get("action")  # login or signup
+        action = request.form.get("action") 
 
         try:
             if action == "signup":
@@ -509,6 +520,7 @@ def auth():
                 })
 
                 session["user_name"] = name
+                session["user_email"] = email
                 return redirect("/dashboard")
 
             if action == "signin":
@@ -519,6 +531,7 @@ def auth():
 
                 if user:
                     session["user_name"] = user["name"]
+                    session["user_email"] = email
                     return redirect("/dashboard")
 
                 return render_auth_page("Invalid login.", active_tab="signin")
