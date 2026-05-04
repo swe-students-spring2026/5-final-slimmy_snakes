@@ -47,3 +47,11 @@ cd study-session-service
 ```
 
 The same coverage checks run in GitHub Actions, so the README badges turn green after the workflows pass on GitHub.
+
+## Team
+
+- James Huang — [@JamesHuang2004](https://github.com/JamesHuang2004)
+- Jerry Wang — [@JerrrryWang](https://github.com/JerrrryWang)
+- Rohan Malhotra — [@Rohanmalhotra0](https://github.com/Rohanmalhotra0)
+- Ryan Lu — [@CHEology](https://github.com/CHEology)
+- Jai — [@hyperjasm](https://github.com/hyperjasm)
