@@ -46,9 +46,10 @@ def rendered(monkeypatch):
     return calls
 
 
-def login(client, name="Tester"):
+def login(client, name="Tester", email="tester@example.com"):
     with client.session_transaction() as flask_session:
         flask_session["user_name"] = name
+        flask_session["user_email"] = email
 
 
 def test_auth_signup_signin_logout_and_errors(client, fake_db, rendered):
@@ -121,16 +122,28 @@ def test_auth_handles_database_failure(client, monkeypatch, rendered):
 
 def test_preparation_and_dashboard_helpers(fake_db):
     fake_db.preparations.insert_many([
-        {"preparation_date": "2099-01-01", "difficulty": "Light (~1 hr)"},
-        {"preparation_date": "2099-01-01", "difficulty": "Medium (~3 hrs)"},
-        {"preparation_date": "2099-01-02", "difficulty": "Heavy (~5+ hrs)"},
+        {
+            "preparation_date": "2099-01-01",
+            "difficulty": "Light (~1 hr)",
+            "user_email": "tester@example.com",
+        },
+        {
+            "preparation_date": "2099-01-01",
+            "difficulty": "Medium (~3 hrs)",
+            "user_email": "tester@example.com",
+        },
+        {
+            "preparation_date": "2099-01-02",
+            "difficulty": "Heavy (~5+ hrs)",
+            "user_email": "other@example.com",
+        },
     ])
 
     assert planner_web_app.get_preparation_hours("Light (~1 hr)") == 1
     assert planner_web_app.get_preparation_hours("Medium (~3 hrs)") == 3
     assert planner_web_app.get_preparation_hours("Heavy (~5+ hrs)") == 5
     assert planner_web_app.get_preparation_hours("Unknown") == 0
-    assert planner_web_app.get_total_preparation_hours("2099-01-01") == 4
+    assert planner_web_app.get_total_preparation_hours("2099-01-01", "tester@example.com") == 4
 
     exams = [{"_id": "a"}, {"_id": "b"}]
     color_map = planner_web_app.assign_dashboard_colors(exams)
@@ -144,23 +157,27 @@ def test_dashboard_and_todo_routes(client, fake_db, rendered):
         "task": "Read chapter",
         "type": "today",
         "completed": False,
+        "user_email": "tester@example.com",
     }).inserted_id
     long_term_id = fake_db.todos.insert_one({
         "task": "Plan project",
         "type": "long-term",
         "completed": False,
+        "user_email": "tester@example.com",
     }).inserted_id
     exam_id = fake_db.exams.insert_one({
         "subject": "Math",
         "exam_date": "2099-01-01",
         "exam_type": "Final",
         "status": "upcoming",
+        "user_email": "tester@example.com",
     }).inserted_id
     fake_db.exams.insert_one({
         "subject": "History",
         "exam_date": "2000-01-01",
         "exam_type": "Midterm",
         "status": "done",
+        "user_email": "tester@example.com",
     })
     fake_db.preparations.insert_one({
         "exam_id": exam_id,
@@ -169,6 +186,7 @@ def test_dashboard_and_todo_routes(client, fake_db, rendered):
         "location": "Library",
         "notes": "",
         "completed": False,
+        "user_email": "tester@example.com",
     })
 
     assert client.get("/").headers["Location"] == "/dashboard"
@@ -254,6 +272,7 @@ def test_exam_and_preparation_routes(client, fake_db, rendered):
             "location": "Library",
             "notes": "",
             "completed": False,
+            "user_email": "tester@example.com",
         })
 
     response = client.post(
@@ -284,11 +303,18 @@ def test_exam_and_preparation_routes(client, fake_db, rendered):
     assert response.headers["Location"] == "/dashboard"
     assert fake_db.exams.find_one({"_id": exam_id})["status"] == "done"
 
-    fake_db.preparations.insert_one({"exam_id": exam_id, "preparation_date": "2099-05-01"})
+    fake_db.preparations.insert_one({
+        "exam_id": exam_id,
+        "preparation_date": "2099-05-01",
+        "user_email": "tester@example.com",
+    })
     response = client.post(f"/delete-exam/{exam_id}")
     assert response.headers["Location"] == "/exams"
     assert fake_db.exams.find_one({"_id": exam_id}) is None
-    assert fake_db.preparations.find_one({"exam_id": exam_id}) is None
+    assert fake_db.preparations.find_one({
+        "exam_id": exam_id,
+        "user_email": "tester@example.com",
+    }) is None
 
 
 def test_study_session_routes_success(client, monkeypatch, rendered):
