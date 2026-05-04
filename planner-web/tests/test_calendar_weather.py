@@ -48,7 +48,11 @@ def make_calendar_client(monkeypatch, database, captured_context):
 
     monkeypatch.setattr(calendar_weather, "render_template", fake_render)
     calendar_weather.register_calendar_weather_routes(test_app, database, login_required)
-    return test_app.test_client()
+    client = test_app.test_client()
+    with client.session_transaction() as flask_session:
+        flask_session["user_name"] = "Ada"
+        flask_session["user_email"] = "ada@example.com"
+    return client
 
 
 def test_shift_month_handles_year_boundaries():
@@ -219,6 +223,7 @@ def test_calendar_page_builds_month_context_and_weather_alerts(monkeypatch):
         "subject": "Math",
         "exam_type": "Final",
         "exam_date": "2026-05-20",
+        "user_email": "ada@example.com",
     }).inserted_id
     database.preparations.insert_one({
         "exam_id": exam_id,
@@ -226,6 +231,27 @@ def test_calendar_page_builds_month_context_and_weather_alerts(monkeypatch):
         "difficulty": "Light (~1 hr)",
         "location": "Outdoor",
         "completed": False,
+        "user_email": "ada@example.com",
+    })
+    database.exams.insert_one({
+        "subject": "Physics",
+        "exam_type": "Quiz",
+        "exam_date": "2026-05-20",
+        "user_email": "grace@example.com",
+    })
+    other_exam_id = database.exams.insert_one({
+        "subject": "Chemistry",
+        "exam_type": "Midterm",
+        "exam_date": "2026-06-01",
+        "user_email": "grace@example.com",
+    }).inserted_id
+    database.preparations.insert_one({
+        "exam_id": other_exam_id,
+        "preparation_date": "2026-05-10",
+        "difficulty": "Deep Work (~3 hrs)",
+        "location": "Indoor",
+        "completed": False,
+        "user_email": "grace@example.com",
     })
 
     monkeypatch.setattr(
@@ -276,10 +302,12 @@ def test_calendar_page_builds_month_context_and_weather_alerts(monkeypatch):
 
     days = [day for week in captured_context["month_weeks"] for day in week]
     prep_day = next(day for day in days if day["date"].isoformat() == "2026-05-10")
+    assert len(prep_day["preparations"]) == 1
     assert prep_day["preparations"][0]["weather_alert"] is True
     assert prep_day["preparations"][0]["is_past_due"] is True
 
     exam_day = next(day for day in days if day["date"].isoformat() == "2026-05-20")
+    assert len(exam_day["exams"]) == 1
     assert exam_day["exams"][0]["subject"] == "Math"
     assert exam_day["weather_label"] == "Sunny"
 

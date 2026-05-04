@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from flask import render_template, request
+from flask import render_template, request, session
 
 
 def register_calendar_weather_routes(app, db, login_required):
@@ -12,6 +12,7 @@ def register_calendar_weather_routes(app, db, login_required):
     @login_required
     def calendar_page():
         today = date.today()
+        user_email = session.get("user_email")
         year = request.args.get("year", type=int) or today.year
         month = request.args.get("month", type=int) or today.month
         selected_city = request.args.get("city", "New York City").strip() or "New York City"
@@ -24,12 +25,14 @@ def register_calendar_weather_routes(app, db, login_required):
         month_end = date(year, month, last_day)
 
         exams = list(db.exams.find({
+            "user_email": user_email,
             "exam_date": {
                 "$gte": month_start.isoformat(),
                 "$lte": month_end.isoformat()
             }
         }))
         preparations = list(db.preparations.find({
+            "user_email": user_email,
             "preparation_date": {
                 "$gte": month_start.isoformat(),
                 "$lte": month_end.isoformat()
@@ -42,7 +45,10 @@ def register_calendar_weather_routes(app, db, login_required):
             exams_by_day.setdefault(exam["exam_date"], []).append(exam)
 
         exam_lookup = {}
-        for exam in db.exams.find({}, {"subject": 1, "exam_type": 1, "exam_date": 1}):
+        for exam in db.exams.find(
+            {"user_email": user_email},
+            {"subject": 1, "exam_type": 1, "exam_date": 1}
+        ):
             exam_lookup[str(exam["_id"])] = exam
 
         preparations_by_day = {}
