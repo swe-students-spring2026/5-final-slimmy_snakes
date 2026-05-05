@@ -4,7 +4,7 @@
 [![CI (planner web)](https://github.com/swe-students-spring2026/5-final-slimmy_snakes/actions/workflows/planner-web-ci.yml/badge.svg)](https://github.com/swe-students-spring2026/5-final-slimmy_snakes/actions/workflows/planner-web-ci.yml)
 [![CI (study session service)](https://github.com/swe-students-spring2026/5-final-slimmy_snakes/actions/workflows/study-session-service-ci.yml/badge.svg)](https://github.com/swe-students-spring2026/5-final-slimmy_snakes/actions/workflows/study-session-service-ci.yml)
 
-StudyCast is a containerized academic planner built with a Flask web app, a study-session focus service, and MongoDB storage. It helps students manage exams, preparation plans, calendar-based scheduling, weather-aware study planning, and focus-session feedback in one place.
+StudyCast is a containerized academic planner that helps students manage exams, organize preparation plans, and schedule study sessions. It also enables weather-aware planning so students can decide whether to study outdoors, while providing focused study session monitoring to keep them on track.
 
 The calendar does more than just display events. It highlights exams in blue, warns students in red when an outdoor preparation session is scheduled on a rainy or snowy day, and marks past-due preparation sessions in red as reminders. The study-session feature also supports active focus monitoring: students can start a timed session, and the system will trigger a beep and turn the screen red if it detects loss of focus, such as turning their head away or looking at a phone.
 
